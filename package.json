@@ -1,0 +1,24 @@
+{
+  "name": "node",
+  "version": "1.0.0",
+  "description": "Learning node.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amirhossein-learning/node.js.git"
+  },
+  "keywords": [
+    "node.js",
+    "js",
+    "express"
+  ],
+  "author": "amirhossein.najafizadeh21@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/amirhossein-learning/node.js/issues"
+  },
+  "homepage": "https://github.com/amirhossein-learning/node.js#readme"
+}
