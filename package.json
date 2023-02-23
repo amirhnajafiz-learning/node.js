@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/amirhossein-learning/node.js/issues"
   },
-  "homepage": "https://github.com/amirhossein-learning/node.js#readme"
+  "homepage": "https://github.com/amirhossein-learning/node.js#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
