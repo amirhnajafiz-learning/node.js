@@ -1,0 +1,213 @@
+\documentclass[12pt]{article}
+
+% packages in use
+\usepackage{amsmath, amssymb, graphicx}
+\usepackage{array}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{parskip}
+\usepackage{minted}
+\usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue]{hyperref}
+\usepackage{titlesec}
+
+\setcounter{secnumdepth}{1} % This will number sections but not subsections
+
+% section title settings
+\titleformat{\section}
+  {\normalfont\large\bfseries} % Format of the section title
+  {}                           % No label before the title
+  {0pt}                        % No space between the title and the margin
+  {}                           % No additional code after the title
+
+% global settings
+\geometry{a4paper, margin=1.5cm}
+
+% renew commands
+\renewcommand{\thesection}{}
+
+\begin{document}
+
+% title section
+\begin{center}
+    {\LARGE\textbf{CSE 509: Homework Two}} \\[1em]
+    {\large Amirhossein Najafizadeh} \\[1em]
+    Semester: Fall 2024 \hfill
+    SBU ID: 116715544 \hfill
+    Email: Amirhossein.Najafizadeh@stonybrook.edu
+    \noindent\rule{\textwidth}{0.6pt}
+\end{center}
+
+\section{1. Strace Command}
+
+According to \href{https://man7.org/linux/man-pages/man1/strace.1.html}{strace Linux manual}, the \textbf{strace} command is used to trace system calls and signals. It intercepts and records the system calls which are called by a process and the signals which are received by a process. For each system call it dumps the name of system call, its arguments and its return value. To analyze an unknown programs, strace provides valuable insights into system calls and signals that help in learning, bug isolation, sanity checking, and capturing race conditions.
+
+As for this assignment, our target application is the \textbf{ls} command which is used for listing entities inside a directory of a filesystem. By running \texttt{strace ls}, we can see that ls command uses execve, read, openat, getdest64, close, write, mmap, brk, ioctl, mprotect, and fstat system calls.
+
+{\fontsize{8pt}{10pt}\selectfont
+\begin{minted}{sh}
+amirhossein:~/ $ strace ls
+execve("/usr/bin/ls", ["ls"], 0x7fffcb605c80 /* 56 vars */) = 0
+brk(NULL)                                                   = 0x5e8a75148000
+arch_prctl(0x3001 /* ARCH_??? */, 0x7ffc978a12e0)           = -1 EINVAL (Invalid argument)
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7b53ef1be000
+access("/etc/ld.so.preload", R_OK)               = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC)    = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=78543, ...}, AT_EMPTY_PATH) = 0
+mmap(NULL, 78543, PROT_READ, MAP_PRIVATE, 3, 0)             = 0x7b53ef1aa000
+close(3)
+\end{minted}
+}
+
+Now we are going to use the \textbf{-l} option with the ls command and check its system calls. By running \texttt{strace ls -l}, we can see additional system calls like lstat, statx, lgetxattr, socket, connect, and getxattr. However, the initialized system calls for them are the same.
+
+{\fontsize{8pt}{10pt}\selectfont
+\begin{minted}{sh}
+amirhossein:~/ $ strace ls -l
+execve("/usr/bin/ls", ["ls", "-l"], 0x7fff37711338 /* 56 vars */)        = 0
+brk(NULL)                                                                = 0x557f51c1d000
+arch_prctl(0x3001 /* ARCH_??? */, 0x7ffe188560f0)                        = -1 EINVAL (Invalid argument)
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x73a64db38000
+...
+getdents64(3, 0x557f51c257c0 /* 59 entries */, 32768)                    = 2000
+statx(AT_FDCWD, "snap", AT_STATX_SYNC_AS_STAT...)                        = 0
+lgetxattr("snap", "security.selinux", 0x557f51c1f2f0, 255)               = -1 ENODATA (No data available)
+getxattr("snap", "system.posix_acl_access", NULL, 0)                     = -1 ENODATA (No data available)
+getxattr("snap", "system.posix_acl_default", NULL, 0)                    = -1 ENODATA (No data available)
+socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0)               = 4
+connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110)    = -1 ENOENT (No such file or directory)
+close(4) 
+\end{minted}
+}
+
+The difference in their system calls is because the ls -l command provides file type, permissions, hard links, owner, group, file size, last modification date/time, and file/directory name. Therefore, it needs to make more system calls to get these data.
+
+Finally, when trying them on different directories (small ones with few files (home dir) and large ones with many files (bin dir)), the number of lstat, statx, lgetxattr, and write system calls will vary depending on the number of entries in the directory. For large directories, these system calls are used more.
+
+\newpage
+
+\section{2. Ltrace Command}
+
+According to \href{https://man7.org/linux/man-pages/man1/ltrace.1.html}{ltrace Linux manual}, the \textbf{ltrace} command is used to trace a library call. It intercepts and records the dynamic library calls which are called by the executed process and the signals which are received by that process.  Moreover, it can also intercept and show parameters of invoked functions and system calls. It also provides options to filter libraries for specific tracing.
+
+As for this assignment, our target is still \textbf{ls} and \textbf{ls -l} commands. By running \texttt{ltrace ls} and \texttt{ltrace ls -l}, we can see the library calls made by these commands.
+
+{\fontsize{8pt}{10pt}\selectfont
+\begin{minted}{sh}
+amirhossein:~/ $ ltrace ls
+strrchr("ls", '/')                                                                          = nil
+setlocale(LC_ALL, "")                                                                       = "en_US.UTF-8"
+bindtextdomain("coreutils", "/usr/share/locale")                                            = "/usr/share/locale"
+textdomain("coreutils")                                                                     = "coreutils"
+__cxa_atexit(0x56c67be70ae0, 0, 0x56c67be87008, 0)                                          = 0
+isatty(1)                                                                                   = 1
+getenv("QUOTING_STYLE")                                                                     = nil
+getenv("COLUMNS")                                                                           = nil
+ioctl(1, 21523, 0x7ffdca291010)                                                             = 0
+getenv("TABSIZE")                                                                           = nil
+getopt_long(1, 0x7ffdca291178, "abcdfghiklmnopqrstuvw:xABCDFGHI:"..., 0x56c67be863e0, -1)   = -1
+...
+amirhossein:~/ $ ltrace ls -l
+strrchr("ls", '/')                                                                          = nil
+setlocale(LC_ALL, "")                                                                       = "en_US.UTF-8"
+bindtextdomain("coreutils", "/usr/share/locale")                                            = "/usr/share/locale"
+textdomain("coreutils")                                                                     = "coreutils"
+...
+strcoll("Documents", "Desktop")                                                             = 69
+__errno_location()                                                                          = 0x725da74d5698
+strcoll("Documents", "go")                                                                  = -80
+__errno_location()                                                                          = 0x725da74d5698
+strcoll("Downloads", "go")                                                                  = -80
+__errno_location()                                                                          = 0x725da74d5698
+strcoll("github.com", "go")                                                                 = -1
+\end{minted}
+}
+
+To leave out calls to utility functions, first we use \textbf{-e} option of the ltrace command, then we use \textbf{awk} to remove utility function calls. Not to mention that the \textbf{-e} option is a qualifying expression which modifies which library calls to trace. We are going to run the following command:
+
+{\fontsize{8pt}{10pt}\selectfont
+\begin{minted}{sh}
+ltrace -e '*' 2>&1 ls | awk '!/free/ && !/malloc/ && !/getenv/ && !/strcmp/ && !/strlen/ && !/strcat/
+&& !/strcpy/ && !/strspn/ && !/getopt/'
+\end{minted}
+}
+
+The \texttt{-e '*'} tells ltrace to trace all library calls, then we export stderr of ltrace to stdout so we can pipe and use \texttt{awk} to remove the utility function calls. In the output we can see something like system calls (ioctl, isatty, opendir, and readdir). However, it is not the same as the strace command's output. It looks like all system calls are made by libraries like libc.so and some of them are directly called by the ls command.
+
+{\fontsize{8pt}{10pt}\selectfont
+\begin{minted}{sh}
+amirhossein:~/ $ ltrace -e '*' 2>&1 ls | awk '!/free/ &&
+!/malloc/ && !/getenv/ && !/strcmp/ && !/strlen/ && !/strcat/ && !/strcpy/ && !/strspn/ && !/getopt/'
+libc.so.6->__rawmemchr(0x7bedae6cb2e0, 0, 0x7ffcf9561538, 0x5e8419a98000) = 0
+ls->strrchr("ls", '/')                                                    = nil
+ls->setlocale(LC_ALL, "" <unfinished ...>
+libc.so.6->_dl_allocate_tls(0x7ffcf9562805, 47, 11, 4)                    = 0
+libc.so.6->memcpy(0x7ffcf956280b, "", 0)                                  = 0x7ffcf9562810
+libc.so.6->__tls_get_addr(0x7ffcf9561000, 0x7ffcf9562805, 6, 6)           = 0x7ffcf9561006
+libc.so.6->__tls_get_addr(0x7ffcf9561006, 0x5e841abf7910, 4, 0x2e53555f)  = 0x7ffcf956100a
+libc.so.6->_dl_allocate_tls(0x7ffcf9562893, 47, 11, 4)                    = 0
+libc.so.6->_dl_allocate_tls(0x7ffcf95627cd, 47, 11, 4)                    = 0
+<... setlocale resumed> )                                                 = "en_US.UTF-8"
+ls->bindtextdomain("coreutils", "/usr/share/locale" <unfinished ...>
+<... bindtextdomain resumed> )                                            = "/usr/share/locale"
+ls->textdomain("coreutils" <unfinished ...>
+<... textdomain resumed> )                                                = "coreutils"
+ls->__cxa_atexit(0x5e8419a9fae0, 0, 0x5e8419ab6008, 0)                    = 0
+ls->isatty(1)                                                             = 0
+ls->ioctl(1, 21523, 0x7ffcf95613c0)                                       = -1
+ls->__errno_location()                                                    = 0x7bedae64b698
+\end{minted}
+}
+
+\newpage
+
+\section{3. Tracking file access with strace}
+
+To count the number of files accessed by applications when they are started up, we are going to use the \textbf{-e trace=file} option to filter system calls that are related to file operations. Then we are going to use the \textbf{-f} option to track the sub-processes of the application. Finally, we are going to remove extra lines in \textbf{strace} output, and run the \textbf{wc} command to count the number of files. We are going to use the following command:
+
+{\fontsize{10pt}{10pt}\selectfont
+\begin{minted}{sh}
+strace -f -e trace=file app 2>&1 | grep -E 'open|openat|access|stat|lstat|fstat' | wc -l
+\end{minted}
+}
+
+Now, we place ls, nano, libreoffice, and google-chrome in this command to count the number of files accessed by them when they are started up. Note that, for nano and libreoffice, we should close them first to see the number of files they accessed.
+
+\subsection{ls}
+
+{\fontsize{8pt}{10pt}\selectfont
+\begin{minted}{sh}
+amirhossein:~/ $ strace -f -e trace=file ls 2>&1 | grep -E 'open|openat|access|stat|lstat|fstat' | wc -l
+19
+\end{minted}
+}
+
+\subsection{nano}
+
+{\fontsize{8pt}{10pt}\selectfont
+\begin{minted}{sh}
+amirhossein:~/ $ strace -f -e trace=file nano 2>&1 | grep -E 'open|openat|access|stat|lstat|fstat' | wc -l
+223
+\end{minted}
+}
+
+\subsection{OpenOffice/ Libreoffice}
+
+{\fontsize{8pt}{10pt}\selectfont
+\begin{minted}{sh}
+amirhossein:~/ $ strace -f -e trace=file libreoffice 2>&1 | grep -E 'open|openat|access|stat|lstat|fstat' | wc -l
+10600
+\end{minted}
+}
+
+\subsection{Chromium}
+
+{\fontsize{8pt}{10pt}\selectfont
+\begin{minted}{sh}
+amirhossein:~/ $ strace -f -e trace=file google-chrome 2>&1 | grep -E 'open|openat|access|stat|lstat|fstat' | wc -l
+1138
+\end{minted}
+}
+
+As you can see, complex applications like libreoffice and chromium usually need to access more files to start up compared to simple applications like ls and nano.
+
+\end{document}
