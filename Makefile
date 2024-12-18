@@ -5,7 +5,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -pedantic
 
 # source files
-SRCS = src/main.c src/helpers.c src/tracer.c
+SRCS = src/main.c src/helpers.c src/tracer.c src/filemap.c
 
 # executable name
 TARGET = safex

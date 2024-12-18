@@ -14,7 +14,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <dirent.h>
-#include <limits.h>
+#include "filemap.h"
 
 // maximum buffer size and the number of files per application
 #define BUFFER_SIZE 256
