@@ -1,1 +1,14 @@
-node_modules/
+# ide
+.vscode/
+.idea/
+
+# os
+.DS_Store
+
+# build
+bin/
+safex
+main
+
+# logs
+logs.*

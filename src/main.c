@@ -2,8 +2,7 @@
 #include <sys/wait.h>
 #include <errno.h>
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     // we need at least 1 input command
     if (argc < 2)
     {

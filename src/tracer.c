@@ -1,8 +1,7 @@
 #include "tracer.h"
 
 // trace process is used to keep track programs. the initial_pid is the id of the application.
-void trace_process(pid_t initial_pid)
-{
+void trace_process(pid_t initial_pid) {
     int status; // this variable is used for getting the application status
     struct user_regs_struct regs; // this variable is used to extract the registers values
     pid_t current_pid; // current_pid is used when the app runs childs
