@@ -1,2 +1,4 @@
-auth
-/home/amirhossein/Desktop/Stonybrook/Courses/CSE-509-SS/assignment-2/codes/safex/auth
+-- safenoread contains all files that you want to be blocked from getting red by subjects or users.
+-- make sure to add absolute path of your files inside ~/.safenoread for safex usage.
+/etc/passwd
+/home/user/auth
