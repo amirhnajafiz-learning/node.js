@@ -1,4 +1,4 @@
-# safex
+# :closed_lock_with_key: safex
 
 Safex is a program designed to create a secure environment, known as a sandbox, for applications. It redirects any file writing operations made by the applications to the `/tmp` directory. Additionally, Safex monitors file access and blocks any attempts by the application to access files listed in the `~/.safenoread` file.
 
