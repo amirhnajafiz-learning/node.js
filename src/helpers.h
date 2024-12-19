@@ -22,6 +22,7 @@
 
 // define the safenoread file path
 #define SAFENOREAD_PATH "/.safenoread"
+#define COMMENT "--"
 
 int find_redirect(const char *filename);
 char *remove_prefix(char *s, const char *prefix);

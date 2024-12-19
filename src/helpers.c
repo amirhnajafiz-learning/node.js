@@ -97,6 +97,9 @@ bool is_safenoread(const char *filename)
     while (fgets(line, sizeof(line), file))
     {
         line[strcspn(line, "\n")] = 0; // remove newline
+        if (strncmp(line, COMMENT, strlen(COMMENT)) == 0) // ignore comments in .safeignore
+            continue;
+
         if (strcmp(line, filename) == 0)
         {
             fclose(file);
