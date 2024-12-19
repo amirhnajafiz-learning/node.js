@@ -64,7 +64,7 @@ char *create_temp_file()
     }
 
     // using mkstemp to create a temp file
-    snprintf(temp_filename, PATH_MAX, "/tmp/safex.XXXXXXXX");
+    snprintf(temp_filename, PATH_MAX, "/tmp/safex.XXXXX");
     int fd = mkstemp(temp_filename);
     if (fd == -1)
     {
